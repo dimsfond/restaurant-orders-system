@@ -1,11 +1,10 @@
 from fastapi import FastAPI, Depends
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app import models, database
 
 app = FastAPI(title = "Restaurant orders API")
 
-def start():
+def start_db():
     database.init_db()
 
 @app.post("/menu/")
