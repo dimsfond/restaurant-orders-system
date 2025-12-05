@@ -16,19 +16,22 @@ class Order(Base):
     id = Column(Integer, primary_key = True, index = True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
     status = Column(String, default = "pending", nullable = False)
-    customer = relationship("Customer", back_populates = "orders")
     total = Column(Float, nullable = False)
+    customer = relationship("Customer", back_populates = "orders")
+    items = relationship("OrderItem", back_populates = "order")
 
 class MenuItem(Base):
     __tablename__ = "menu_items"
     id = Column(Integer, primary_key = True, index = True)
     name = Column(String, nullable=False)
     price = Column(Float, nullable = False)
+    order_items = relationship("OrderItem", back_populates = "menu_item")
 
-class OrderItem(base):
+class OrderItem(Base):
     __tablename__ = "order_items"
     id = Column(Integer, primary_key = True, index = True)
     quantity = Column(Integer, nullable = False)
     order_id = Column(Integer, ForeignKey("orders.id"))
     menu_item_id = Column(Integer, ForeignKey("menu_items.id"))
     order = relationship("Order", back_populates = "items")
+    menu_item = relationship("MenuItem", back_populates = "order_items")

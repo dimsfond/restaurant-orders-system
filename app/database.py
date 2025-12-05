@@ -7,10 +7,12 @@ DATABASE_URL = "sqlite:///./restaurant.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 session = sessionmaker(bind = engine, autocommit = False, autoflush = False)
 
-Base.metadata.create_all(bind = engine)
-def get_database():
-    session_db = session()
+def init_db():
+    Base.metadata.create_all(bind = engine)
+    
+def get_db():
+    dbSession = session()
     try:
-        yield session_db
+        yield dbSession
     finally:
-        session_db.close()
+        dbSession.close()

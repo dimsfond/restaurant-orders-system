@@ -5,9 +5,8 @@ from app import models, database
 
 app = FastAPI(title = "Restaurant orders API")
 
-class ProductCreate(BaseModel):
-    name: str
-    price: float
+def start():
+    database.init_db()
 
 @app.post("/menu/")
 def createProduct(product: ProductCreate, db: Session = Depends(database.get_database)):
