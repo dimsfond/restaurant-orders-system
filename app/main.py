@@ -45,3 +45,53 @@ def customer_leaves(id: int, db: Session = Depends(database.get_db)):
     db.commit()
     db.refresh(customer)
     return {"detail": "Customer {id} has paid and left"}
+
+@app.get("/menu/", response_model=list[dict])
+def get_menu(db: Session = Depends(database.get_db)):
+    menu = db.query(MenuItem).all()
+    return [
+        {
+            "id": item.id,
+            "name": item.name,
+            "price": item.price
+        }
+        for item in menu
+    ]
+
+@app.post("/menu/", response_model = dict)
+def add_menu_item(name: str, price: float, db: Session = Depends(database.get_db)):
+    item = MenuItem(name, price)
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return {
+        "id": item.id,
+        "name": item.name,
+        "price": item.price
+    }
+
+@app.patch("menu/{id}", response_model = dict)
+def update_item(id: int, name: str | None, price: float | None, db: Session = Depends(database.get_db)):
+    item = db.query(MenuItem).filter(MenuItem.id == id).first()
+    if not item:
+        raise HTTPException(status_code = 404, detail = "Item not found")
+    if name is not None:
+        item.name = name
+    if price is not None:
+        item.price = price
+    db.commit()
+    db.refresh(item)
+    return {
+        "id": item.id,
+        "name": item.name,
+        "price": item.price
+    }
+
+@app.delete("menu/{id}", response_model = dict)
+def delete_item(id, db: Session = Depends(database.get_db)):
+    item = db.query(MenuItem).filter(MenuItem.id == id).first()
+    if not item:
+        raise HTTPException(status_code = 404, detail = "Item not found")
+    db.delete(item)
+    db.commit()
+    return {"detail": "Item {id} deleted from the menu"}
