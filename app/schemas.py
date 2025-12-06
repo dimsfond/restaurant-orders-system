@@ -14,6 +14,7 @@ class MenuItemResponse(BaseModel):
         orm_mode = True
 
 class OrderItemCreate(BaseModel):
+    order_id: int
     quantity: int
     menu_item_id: int
 
@@ -43,3 +44,6 @@ class OrderResponse(BaseModel):
     items: List[OrderItemResponse] = []
     class Config:
         orm_mode = True
+
+class StatusUpdate(BaseModel):
+    status: OrderStatus
