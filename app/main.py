@@ -15,33 +15,40 @@ def create_order(payload: schemas.OrderCreate, db: Session = Depends(database.ge
     customer = db.query(Customer).filter(Customer.id == payload.customer_id).first()
     if not customer:
         raise HTTPException(status_code = 404, detail = "Customer not found")
+    for i, item in enumerate(payload.items):
+        if item.quantity <= 0:
+            raise HTTPException(status_code = 400, detail = f"Invalid quantity for item {i}: must be >= 1")
     order = Order(customer_id = payload.customer_id, status = "pending", total = 0.0)
     db.add(order)
     db.flush()
-    for item in payload.items:
-        menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
-        if not menu_item:
-            raise HTTPException(status = 404, detail = "Menu Item not found")
-        order_item = OrderItem(quantity = item.quantity, order_id = order.id, menu_item_id = menu_item.id)
-        db.add(order_item)
-    db.commit()
-    db.refresh(order)
-    order.total = utilities.compute_order_total(order, db)
-    db.commit()
-    db.refresh(order)
-
-    return order
+    try:
+        for item in payload.items:
+            menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
+            if not menu_item:
+                db.rollback()
+                raise HTTPException(status_code = 404, detail = "Menu Item not found")
+            order_item = OrderItem(quantity = item.quantity, order_id = order.id, menu_item_id = menu_item.id)
+            db.add(order_item)
+        db.commit()
+        db.refresh(order)
+        order.total = utilities.compute_order_total(order, db)
+        db.commit()
+        db.refresh(order)
+        return order
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code = 500, detail = "Internal Server Error")
 
 @app.patch("/orders/{id}/status", response_model = schemas.OrderResponse)
 def update_order_status(id: int, status_update: schemas.StatusUpdate, db: Session = Depends(database.get_db)):
-    try:
-        updated_status = schemas.OrderStatus(status_update.status)
-    except:
-        raise HTTPException(status_code = 400, detail = f"Invalid status. Allowed values are {[s.value for s in schemas.OrderStatus]}")
     order = db.query(Order).filter(Order.id == id).first()
     if not order:
         raise HTTPException(status_code = 404, detail = "Order not found")
-    order.status = updated_status.value
+    if status_update.status not in schemas.OrderStatus:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Allowed values are {[s.value for s in schemas.OrderStatus]}")
+    order.status = status_update.status.value
     db.commit()
     db.refresh(order)
 
