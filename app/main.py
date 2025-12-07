@@ -1,13 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, Body
+from . import database, schemas, utilities
+from .models import Customer, Order, OrderItem, MenuItem
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app import database
-from models import Customer, Order, OrderItem, MenuItem
-import schemas, utilities
 from typing import List, Optional
 
 app = FastAPI(title = "Restaurant orders API")
 
-def start_db():
+@app.on_event("startup")
+def startup_event():
     database.init_db()
 
 @app.post("/orders/", response_model = schemas.OrderResponse)

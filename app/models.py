@@ -8,7 +8,8 @@ Base = declarative_base()
 class Customer(Base):
     __tablename__ = "customers"
     id = Column(Integer, primary_key = True, index = True)
-    name = Column(String, nullable = False)
+    table_number = Column(Integer, nullable = False)
+    is_present = Column(Boolean, nullable = False)
     orders = relationship("Order", back_populates = "customer", cascade = "all, delete-orphan")
 
 class Order(Base):
@@ -18,7 +19,7 @@ class Order(Base):
     status = Column(String, default = "pending", nullable = False)
     total = Column(Float, nullable = False)
     customer = relationship("Customer", back_populates = "orders")
-    items = relationship("OrderItem", back_populates = "order")
+    items = relationship("OrderItem", back_populates = "order", cascade = "all, delete-orphan")
 
 class MenuItem(Base):
     __tablename__ = "menu_items"

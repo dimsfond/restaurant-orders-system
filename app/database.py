@@ -5,6 +5,9 @@ from .models import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./restaurant.db")
 
+import os
+print("Database absolute path:", os.path.abspath("./restaurant.db"))
+
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind = engine, autocommit = False, autoflush = False)
 
