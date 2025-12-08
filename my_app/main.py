@@ -46,8 +46,6 @@ def update_order_status(id: int, status_update: schemas.StatusUpdate, db: Sessio
     order = db.query(Order).filter(Order.id == id).first()
     if not order:
         raise HTTPException(status_code = 404, detail = "Order not found")
-    if status_update.status not in schemas.OrderStatus:
-        raise HTTPException(status_code=400, detail=f"Invalid status. Allowed values are {[s.value for s in schemas.OrderStatus]}")
     order.status = status_update.status.value
     db.commit()
     db.refresh(order)

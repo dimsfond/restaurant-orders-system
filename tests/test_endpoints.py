@@ -33,7 +33,7 @@ def client(db_session):
         finally:
             pass
     
-    app.dependency_overrides = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
 
     with TestClient(app) as tc:
         yield tc
@@ -53,7 +53,8 @@ def test_create_order_success(client):
     data = response.json()
     assert data["customer_id"] == 1
     assert data["status"] == "pending"
-    assert abs(data["total"] - 19.5) < 1e-6
+    expected_total = 2 * 8.5 + 1 * 2.5
+    assert abs(data["total"] - expected_total) < 1e-6
     assert isinstance(data["items"], list) and len(data["items"]) == 2
 
 def test_create_order_invalid_quantity(client):
@@ -112,7 +113,7 @@ def test_patch_order_status_invalid(client):
     response = client.patch(f"/orders/{order_id}/status", json = payload)
     assert response.status_code == 400, response.text
     data = response.json()
-    assert "Invalid Status" in data["detail"]
+    assert "Invalid status" in data["detail"]
 
 def test_get_order_details_success(client):
     creating_order_payload = {
@@ -131,7 +132,8 @@ def test_get_order_details_success(client):
     assert data["id"] == order_id
     assert data["customer_id"] == 1
     assert data["status"] == "pending"
-    assert abs(data["total"] - 19.5) < 1e-6
+    expected_total = 2 * 8.5 + 1 * 2.5
+    assert abs(data["total"] - expected_total) < 1e-6
     assert isinstance(data["items"], list) and len(data["items"]) == 2
 
 def test_get_order_details_not_found(client):
