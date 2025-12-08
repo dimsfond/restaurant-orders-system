@@ -113,3 +113,24 @@ def test_patch_order_status_invalid(client):
     assert response.status_code == 400, response.text
     data = response.json()
     assert "Invalid Status" in data["detail"]
+
+def test_get_order_details_success(client):
+    creating_order_payload = {
+        "customer_id": 1,
+        "items": [
+            {"menu_item_id": 1, "quantity": 2},
+            {"menu_item_id": 2, "quantity": 1}
+        ]
+    }
+    order_response = client.post("/orders/", json=creating_order_payload)
+    order_id = order_response.json()["id"]
+
+    response = client.get(f"/orders/{order_id}")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["id"] == order_id
+    assert data["customer_id"] == 1
+    assert data["status"] == "pending"
+    assert abs(data["total"] - 19.5) < 1e-6
+    assert isinstance(data["items"], list) and len(data["items"]) == 2
+
