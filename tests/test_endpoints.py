@@ -1,3 +1,5 @@
+import pytest
+
 def test_create_order_success(client):
     payload = {
         "customer_id": 1,
@@ -69,9 +71,9 @@ def test_patch_order_status_invalid(client):
 
     payload = {"status": "cooking"}
     response = client.patch(f"/orders/{order_id}/status", json = payload)
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
     data = response.json()
-    assert "Invalid status" in data["detail"]
+    assert "Input should be" in data["detail"][0]["msg"]
 
 def test_get_order_details_success(client):
     creating_order_payload = {

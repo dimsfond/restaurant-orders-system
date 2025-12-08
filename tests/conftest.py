@@ -9,7 +9,7 @@ from my_app.main import app
 from my_app.database import get_db
 
 # In-memory SQLite DB
-TEST_DATABASE_URL = "sqlite:///:memory:"
+TEST_DATABASE_URL = "sqlite:///./test.db"  # file-based SQLite
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
@@ -17,7 +17,7 @@ TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=Fals
 Base.metadata.create_all(bind=engine)
 
 # DB session fixture
-@pytest.fixture
+@pytest.fixture(scope="function")
 def db_session():
     session = TestingSessionLocal()
     try:
@@ -26,7 +26,7 @@ def db_session():
         session.close()
 
 # FastAPI client fixture
-@pytest.fixture
+@pytest.fixture(scope="function")
 def client(db_session):
     # Seed some initial data
     customer1 = Customer(table_number=1, is_present=True)

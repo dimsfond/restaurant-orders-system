@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from . import database
-from .models import Order, OrderItem, MenuItem
+from my_app import database
+from my_app.models import Order, OrderItem, MenuItem
 
 def compute_order_total(order: Order, db: Session) -> float:
     total = 0.0

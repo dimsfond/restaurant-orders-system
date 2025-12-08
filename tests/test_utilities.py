@@ -1,3 +1,4 @@
+import pytest
 from my_app.models import MenuItem, Order, OrderItem
 from my_app.utilities import compute_order_total 
 
