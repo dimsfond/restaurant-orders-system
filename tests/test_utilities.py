@@ -4,13 +4,14 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Base, MenuItem, Order, OrderItem
 from app.utilities import compute_order_total
 
-engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(bind = engine, autoflush = False, autocommit = False)
+TEST_DATABASE_URL = "sqlite:///:memory:"
+engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(bind = engine, autoflush = False, autocommit = False)
 Base.metadata.create_all(bind = engine)
 
 @pytest.fixture
-def get_db():
-    session = SessionLocal()
+def db_session():
+    session = TestingSessionLocal()
     try:
         yield session
     finally:
