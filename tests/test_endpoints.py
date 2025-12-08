@@ -81,3 +81,35 @@ def test_create_order_non_existent_menu_item(client):
     assert response.status_code == 404, response.text
     data = response.json()
     assert data["detail"] == "Menu Item not found"
+
+def test_patch_order_status_sucess(client):
+    creating_order_payload = {
+        "customer_id": 1,
+        "items": [
+            {"menu_item_id": 1, "quantity": 1}
+        ]
+    }
+    order_response = client.post("/orders/", json = creating_order_payload)
+    order_id = order_response.json()["id"]
+
+    payload = {"status": "preparing"}
+    response = client.patch(f"/orders/{order_id}/status", json = payload)
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["status"] == "preparing"
+
+def test_patch_order_status_invalid(client):
+    creating_order_payload = {
+        "customer_id": 1,
+        "items": [
+            {"menu_item_id": 1, "quantity": 1}
+        ]
+    }
+    order_response = client.post("/orders/", json = creating_order_payload)
+    order_id = order_response.json()["id"]
+
+    payload = {"status": "cooking"}
+    response = client.patch(f"/orders/{order_id}/status", json = payload)
+    assert response.status_code == 400, response.text
+    data = response.json()
+    assert "Invalid Status" in data["detail"]
