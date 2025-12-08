@@ -82,7 +82,7 @@ def test_create_order_non_existent_menu_item(client):
     data = response.json()
     assert data["detail"] == "Menu Item not found"
 
-def test_patch_order_status_sucess(client):
+def test_patch_order_status_success(client):
     creating_order_payload = {
         "customer_id": 1,
         "items": [
@@ -134,6 +134,12 @@ def test_get_order_details_success(client):
     assert abs(data["total"] - 19.5) < 1e-6
     assert isinstance(data["items"], list) and len(data["items"]) == 2
 
+def test_get_order_details_not_found(client):
+    response = client.get("/orders/9999")
+    assert response.status_code == 404, response.text
+    data = response.json()
+    assert "Order not found" in data["detail"]
+
 def test_list_order_with_filter_status(client):
     creating_order_payload1 = {
         "customer_id": 1,
@@ -152,7 +158,7 @@ def test_list_order_with_filter_status(client):
 
     #GET all orders
     response_all = client.get("/orders/")
-    assert response_all.statud_code == 200, response_all.text
+    assert response_all.status_code == 200, response_all.text
     data_all = response_all.json()
     assert len(data_all) >= 2
 
@@ -169,3 +175,25 @@ def test_list_order_with_filter_status(client):
     data_pending = response_pending.json()
     assert any(order["id"] == order1_id for order in data_pending)
     assert all(order["status"] == "pending" for order in data_pending)
+
+def test_delete_order_success(client):
+    creating_order_payload = {
+        "customer_id": 1,
+        "items": [{"menu_item_id": 1, "quantity": 1}]
+    }
+    order_response = client.post("/orders/", json=creating_order_payload)
+    order_id = order_response.json()["id"]
+
+    response = client.delete(f"/orders/{order_id}")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert f"Order {order_id} has been deleted" in data["detail"]
+
+    order_response = client.get(f"/orders/{order_id}")
+    assert order_response.status_code == 404
+
+def test_delete_order_failure(client):
+    response = client.delete("/orders/9999")
+    assert response.status_code == 404, response.text
+    data = response.json()
+    assert "Order not found" in data["detail"]
