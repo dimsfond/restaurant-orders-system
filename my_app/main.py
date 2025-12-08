@@ -1,5 +1,5 @@
-from . import database, schemas, utilities
-from .models import Customer, Order, OrderItem, MenuItem
+from my_app import database, schemas, utilities
+from my_app.models import Customer, Order, OrderItem, MenuItem
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional

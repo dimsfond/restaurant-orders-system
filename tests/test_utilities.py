@@ -1,21 +1,5 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from my_app.models import Base, MenuItem, Order, OrderItem
-from my_app.utilities import compute_order_total
-
-TEST_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(bind = engine, autoflush = False, autocommit = False)
-Base.metadata.create_all(bind = engine)
-
-@pytest.fixture
-def db_session():
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
+from my_app.models import MenuItem, Order, OrderItem
+from my_app.utilities import compute_order_total 
 
 def test_compute_order_total(db_session):
     menu_item1 = MenuItem(name="Burger", price=8.0)
