@@ -134,3 +134,38 @@ def test_get_order_details_success(client):
     assert abs(data["total"] - 19.5) < 1e-6
     assert isinstance(data["items"], list) and len(data["items"]) == 2
 
+def test_list_order_with_filter_status(client):
+    creating_order_payload1 = {
+        "customer_id": 1,
+        "items": [{"menu_item_id": 1, "quantity": 1}]
+    }
+    creating_order_payload2 = {
+        "customer_id": 1,
+        "items": [{"menu_item_id": 2, "quantity": 2}]
+    }
+
+    order_response1 = client.post("/orders/", json=creating_order_payload1)
+    order1_id = order_response1.json()["id"]
+    order_response2 = client.post("/orders/", json=creating_order_payload2)
+    order2_id = order_response2.json()["id"]
+    client.patch(f"/orders/{order2_id}/status", json={"status": "preparing"})
+
+    #GET all orders
+    response_all = client.get("/orders/")
+    assert response_all.statud_code == 200, response_all.text
+    data_all = response_all.json()
+    assert len(data_all) >= 2
+
+    #GET orders with status preparing
+    response_preparing = client.get("/orders/", params = {"status": "preparing"})
+    assert response_preparing.status_code == 200, response_preparing.text
+    data_preparing = response_preparing.json()
+    assert any(order["id"] == order2_id for order in data_preparing)
+    assert all(order["status"] == "preparing" for order in data_preparing)
+
+    #GET orders with status pending
+    response_pending = client.get("/orders/", params = {"status": "pending"})
+    assert response_pending.status_code == 200, response_pending.text
+    data_pending = response_pending.json()
+    assert any(order["id"] == order1_id for order in data_pending)
+    assert all(order["status"] == "pending" for order in data_pending)
