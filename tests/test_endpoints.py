@@ -68,3 +68,16 @@ def test_create_order_invalid_quantity(client):
     assert response.status_code == 400, response.text
     data = response.json()
     assert "Invalid quantity" in data["detail"]
+
+def test_create_order_non_existent_menu_item(client):
+    payload = {
+        "customer_id": 1,
+        "items": [
+            {"menu_item_id": 999, "quantity": 1},
+            {"menu_item_id": 2, "quantity": 1}
+        ]
+    }
+    response = client.post("/orders/", json = payload)
+    assert response.status_code == 404, response.text
+    data = response.json()
+    assert data["detail"] == "Menu Item not found"
