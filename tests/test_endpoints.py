@@ -55,3 +55,16 @@ def test_create_order_success(client):
     assert data["status"] == "pending"
     assert abs(data["total"] - 19.5) < 1e-6
     assert isinstance(data["items"], list) and len(data["items"]) == 2
+
+def test_create_order_invalid_quantity(client):
+    payload = {
+        "customer_id": 1,
+        "items": [
+            {"menu_item_id": 1, "quantity": 0},
+            {"menu_item_id": 2, "quantity": 1}
+        ]
+    }
+    response = client.post("/orders/", json = payload)
+    assert response.status_code == 400, response.text
+    data = response.json()
+    assert "Invalid quantity" in data["detail"]
