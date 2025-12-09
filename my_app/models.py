@@ -21,6 +21,7 @@ class Order(Base):
     total = Column(Float, nullable = False)
     customer = relationship("Customer", back_populates = "orders")
     items = relationship("OrderItem", back_populates = "order", cascade = "all, delete-orphan")
+    history = relationship("OrderHistory", back_populates = "order", cascade = "all, delete-orphan")
 
 class MenuItem(Base):
     __tablename__ = "menu_items"
@@ -45,3 +46,4 @@ class OrderHistory(Base):
     previous_status = Column(String, nullable = False)
     new_status = Column(String, nullable = False)
     timestamp = Column(String, default=lambda: datetime.utcnow().isoformat())
+    order = relationship("Order", back_populates = "history")
