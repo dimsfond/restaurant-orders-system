@@ -1,5 +1,5 @@
 from my_app import database, schemas, utilities
-from my_app.models import Customer, Order, OrderItem, MenuItem
+from my_app.models import Customer, Order, OrderItem, MenuItem, OrderHistory
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -61,6 +61,9 @@ def update_order_status(id: int, status_update: schemas.StatusUpdate, db: Sessio
         order.status = status_update.status.value
         db.commit()
         db.refresh(order)
+        history = OrderHistory(order_id = order.id, previous_status = previous_status, new_status = order.status)
+        db.add(history)
+        db.commit()
         logger.info(f"Order {order.id} status has been updated from {previous_status} to {order.status}")
         
         return order
