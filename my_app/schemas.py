@@ -46,3 +46,12 @@ class OrderResponse(BaseModel):
 
 class StatusUpdate(BaseModel):
     status: OrderStatus
+
+class OrderHistoryResponse(BaseModel):
+    id: int
+    order_id: int
+    previous_status: OrderStatus
+    new_status: OrderStatus
+    timestamp: str
+    class Config:
+        orm_mode = True
