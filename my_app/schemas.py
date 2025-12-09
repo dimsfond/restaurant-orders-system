@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from enum import Enum
+from datetime import datetime
 
 class MenuItemCreate(BaseModel):
     name: str
@@ -52,6 +53,6 @@ class OrderHistoryResponse(BaseModel):
     order_id: int
     previous_status: OrderStatus
     new_status: OrderStatus
-    timestamp: str
+    timestamp: datetime
     class Config:
         orm_mode = True

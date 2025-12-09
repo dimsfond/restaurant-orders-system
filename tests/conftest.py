@@ -8,6 +8,7 @@ from my_app.models import Base, Customer, MenuItem, Order, OrderItem
 from my_app.main import app
 from my_app.database import get_db
 
+load_dotenv()
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite:///./test.db")
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
