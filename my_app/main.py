@@ -3,6 +3,9 @@ from my_app.models import Customer, Order, OrderItem, MenuItem
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import logging
+
+logging.basicConfig(level = logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 app = FastAPI(title = "Restaurant orders API")
 
