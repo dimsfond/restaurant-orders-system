@@ -121,3 +121,18 @@ def delete_order(id: int, db: Session = Depends(database.get_db)):
         db.rollback()
         logger.error(f"Error deleting order {id}: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.get("/orders/{id}/history", response_model = list[schemas.OrderHistoryResponse])
+def get_order_history(id: int, db: Session = Depends(database.get_db)):
+    try:
+        order_history = db.query(OrderHistory).filter(OrderHistory.order_id == id).first()
+        if not order_history:
+            raise HTTPException(status_code = 404, detail = "Order history not found")
+        logger.info(f"Got {len(order_history)} history records for order {id}")
+
+        return order_history
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting history for order {id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
