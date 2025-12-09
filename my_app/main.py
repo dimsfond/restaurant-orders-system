@@ -48,6 +48,7 @@ def create_order(payload: schemas.OrderCreate, db: Session = Depends(database.ge
         raise
     except Exception:
         db.rollback()
+        logger.error(f"Error creating order: {e}")
         raise HTTPException(status_code = 500, detail = "Internal Server Error")
 
 @app.patch("/orders/{id}/status", response_model = schemas.OrderResponse)
@@ -55,13 +56,18 @@ def update_order_status(id: int, status_update: schemas.StatusUpdate, db: Sessio
     order = db.query(Order).filter(Order.id == id).first()
     if not order:
         raise HTTPException(status_code = 404, detail = "Order not found")
-    previous_status = order.status
-    order.status = status_update.status.value
-    db.commit()
-    db.refresh(order)
-    logger.info(f"Order {order.id} status has been updated from {previous_status} to {order.status}")
-
-    return order
+    try:
+        previous_status = order.status
+        order.status = status_update.status.value
+        db.commit()
+        db.refresh(order)
+        logger.info(f"Order {order.id} status has been updated from {previous_status} to {order.status}")
+        
+        return order
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating status for order {id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.get("/orders/{id}", response_model = schemas.OrderResponse)
 def list_order_details(id: int, db: Session = Depends(database.get_db)):
@@ -92,8 +98,13 @@ def delete_order(id: int, db: Session = Depends(database.get_db)):
     order = db.query(Order).filter(Order.id == id).first()
     if not order:
         raise HTTPException(status_code = 404, detail = "Order not found")
-    db.delete(order)
-    db.commit()
-    logger.info(f"Order {id} has been deleted")
-
-    return {"detail": f"Order {id} has been deleted"}
+    try:
+        db.delete(order)
+        db.commit()
+        logger.info(f"Order {id} has been deleted")
+        
+        return {"detail": f"Order {id} has been deleted"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting order {id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
