@@ -175,3 +175,26 @@ def test_delete_order_failure(client):
     assert response.status_code == 404, response.text
     data = response.json()
     assert "Order not found" in data["detail"]
+
+def test_get_order_history_success(client):
+    creating_order_payload = {
+        "customer_id": 1,
+        "items": [{"menu_item_id": 1, "quantity": 1}]
+    }
+    order_response = client.post("/orders/", json = creating_order_payload)
+    order_id = order_response.json()["id"]
+
+    client.patch(f"/orders/{order_id}/status", json = {"status": "preparing"})
+    client.patch(f"/orders/{order_id}/status", json={"status": "ready"})
+    response = client.get(f"/orders/{order_id}/history")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data == 2)
+    assert all("previous_status" in h and "new_status" in h and "timestamp" in h for h in data)
+
+def test_get_order_histroy_failure(client):
+    response = client.get("/orders/9999/history")
+    assert response.status_code == 404
+    data = response.json()
+    assert "No history found" in data["detail"]
