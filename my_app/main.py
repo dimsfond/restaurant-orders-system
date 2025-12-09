@@ -6,6 +6,7 @@ from typing import List, Optional
 import logging
 
 logging.basicConfig(level = logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title = "Restaurant orders API")
 
@@ -40,6 +41,8 @@ def create_order(payload: schemas.OrderCreate, db: Session = Depends(database.ge
         order.total = utilities.compute_order_total(order, db)
         db.commit()
         db.refresh(order)
+        logger.info(f"Order {order.id} created for customer {payload.customer_id}, it costs total {order.total}")
+
         return order
     except HTTPException:
         raise
@@ -52,9 +55,11 @@ def update_order_status(id: int, status_update: schemas.StatusUpdate, db: Sessio
     order = db.query(Order).filter(Order.id == id).first()
     if not order:
         raise HTTPException(status_code = 404, detail = "Order not found")
+    previous_status = order.status
     order.status = status_update.status.value
     db.commit()
     db.refresh(order)
+    logger.info(f"Order {order.id} status has been updated from {previous_status} to {order.status}")
 
     return order
 
@@ -89,5 +94,6 @@ def delete_order(id: int, db: Session = Depends(database.get_db)):
         raise HTTPException(status_code = 404, detail = "Order not found")
     db.delete(order)
     db.commit()
+    logger.info(f"Order {id} has been deleted")
 
     return {"detail": f"Order {id} has been deleted"}
