@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float,ForeignKey, Boolean
+from sqlalchemy import Column, String, Integer, Float,ForeignKey, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import enum
@@ -45,5 +45,5 @@ class OrderHistory(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable = False)
     previous_status = Column(String, nullable = False)
     new_status = Column(String, nullable = False)
-    timestamp = Column(String, default=lambda: datetime.utcnow().isoformat())
+    timestamp = Column(DateTime, default=datetime.utcnow)
     order = relationship("Order", back_populates = "history")
