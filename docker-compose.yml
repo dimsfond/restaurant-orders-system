@@ -4,3 +4,5 @@ services:
     container_name: restaurant-orders-api
     ports:
       - "8000:8000"
+    volumes:
+      - ./restaurant.db:/app/restaurant.db
