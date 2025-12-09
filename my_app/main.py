@@ -27,6 +27,9 @@ def create_order(payload: schemas.OrderCreate, db: Session = Depends(database.ge
             if not menu_item:
                 db.rollback()
                 raise HTTPException(status_code = 404, detail = "Menu Item not found")
+            if menu_item.price <= 0:
+                db.rollback()
+                raise HTTPException(status_code = 400, detail=f"Invalid price for menu item {menu_item.id}: must be greater than 0")
             order_item = OrderItem(quantity = item.quantity, order_id = order.id, menu_item_id = menu_item.id)
             db.add(order_item)
         db.commit()

@@ -1,4 +1,5 @@
 import pytest
+from my_app.models import MenuItem
 
 def test_create_order_success(client):
     payload = {
@@ -29,6 +30,21 @@ def test_create_order_invalid_quantity(client):
     assert response.status_code == 400, response.text
     data = response.json()
     assert "Invalid quantity" in data["detail"]
+
+def test_create_order_invalid_menu_item_price(client, db_session):
+    menu_item = MenuItem(name = "Soda", price = 0)
+    db_session.add(menu_item)
+    db_session.commit()
+    payload = {
+        "customer_id": 1,
+        "items": [
+            {"menu_item_id": menu_item.id, "quantity": 1}
+        ]
+    }
+    response = client.post("/orders/", json = payload)
+    assert response.status_code == 400, response.text
+    data = response.json()
+    assert "Invalid price" in data["detail"]
 
 def test_create_order_non_existent_menu_item(client):
     payload = {
