@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Integer, Float,ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import enum
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -36,3 +37,11 @@ class OrderItem(Base):
     menu_item_id = Column(Integer, ForeignKey("menu_items.id"))
     order = relationship("Order", back_populates = "items")
     menu_item = relationship("MenuItem", back_populates = "order_items")
+
+class OrderHistory(Base):
+    __tablename__ = "order_history"
+    id = Column(Integer, primary_key = True, index = True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable = False)
+    previous_status = Column(String, nullable = False)
+    new_status = Column(String, nullable = False)
+    timestamp = Column(String, default=lambda: datetime.utcnow().isoformat())
