@@ -125,7 +125,7 @@ def delete_order(id: int, db: Session = Depends(database.get_db)):
 @app.get("/orders/{id}/history", response_model = list[schemas.OrderHistoryResponse])
 def get_order_history(id: int, db: Session = Depends(database.get_db)):
     try:
-        order_history = db.query(OrderHistory).filter(OrderHistory.order_id == id).first()
+        order_history = db.query(OrderHistory).filter(OrderHistory.order_id == id).all()
         if not order_history:
             raise HTTPException(status_code = 404, detail = "Order history not found")
         logger.info(f"Got {len(order_history)} history records for order {id}")

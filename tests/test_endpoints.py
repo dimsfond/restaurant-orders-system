@@ -190,11 +190,11 @@ def test_get_order_history_success(client):
     assert response.status_code == 200, response.text
     data = response.json()
     assert isinstance(data, list)
-    assert len(data == 2)
+    assert len(data) == 2
     assert all("previous_status" in h and "new_status" in h and "timestamp" in h for h in data)
 
-def test_get_order_histroy_failure(client):
+def test_get_order_history_failure(client):
     response = client.get("/orders/9999/history")
     assert response.status_code == 404
     data = response.json()
-    assert "No history found" in data["detail"]
+    assert "Order history not found" in data["detail"]
