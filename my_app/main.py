@@ -46,7 +46,7 @@ def create_order(payload: schemas.OrderCreate, db: Session = Depends(database.ge
         return order
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
         db.rollback()
         logger.error(f"Error creating order: {e}")
         raise HTTPException(status_code = 500, detail = "Internal Server Error")
@@ -71,27 +71,37 @@ def update_order_status(id: int, status_update: schemas.StatusUpdate, db: Sessio
 
 @app.get("/orders/{id}", response_model = schemas.OrderResponse)
 def list_order_details(id: int, db: Session = Depends(database.get_db)):
-    order = db.query(Order).filter(Order.id == id).first()
-    if not order:
-        raise HTTPException(status_code = 404, detail = "Order not found")
-    for item in order.items:
-        if item.menu_item is None:
-            item.menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
-    
-    return order
-
-@app.get("/orders/", response_model = list[schemas.OrderResponse])
-def list_orders(status: Optional[schemas.OrderStatus] = None, db: Session = Depends(database.get_db)):
-    query = db.query(Order)
-    if status:
-        query = query.filter(Order.status == status.value)
-    orders = query.all()
-    for order in orders:
+    try:
+        order = db.query(Order).filter(Order.id == id).first()
+        if not order:
+            raise HTTPException(status_code = 404, detail = "Order not found")
         for item in order.items:
             if item.menu_item is None:
                 item.menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
-    
-    return orders
+                
+        return order
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching order details for order {id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.get("/orders/", response_model = list[schemas.OrderResponse])
+def list_orders(status: Optional[schemas.OrderStatus] = None, db: Session = Depends(database.get_db)):
+    try:
+        query = db.query(Order)
+        if status:
+            query = query.filter(Order.status == status.value)
+        orders = query.all()
+        for order in orders:
+            for item in order.items:
+                if item.menu_item is None:
+                    item.menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
+        
+        return orders
+    except Exception as e:
+        logger.error(f"Error listing orders (status filter: {status}): {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.delete("/orders/{id}", response_model = dict)
 def delete_order(id: int, db: Session = Depends(database.get_db)):
